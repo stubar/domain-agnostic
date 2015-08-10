@@ -11,7 +11,8 @@ License:  GPL2
 
 class DomainAgnostic {
     static function getDomain($siteUrl) {
-        if ($host = $_SERVER['HTTP_X_FORWARDED_HOST'])
+        //takes the domain that comes from the DB ($siteUrl) and replaces the hostname with the real host.
+        if (isset($_SERVER['HTTP_X_FORWARDED_HOST']) && $host = $_SERVER['HTTP_X_FORWARDED_HOST'])
         {
             $elements = explode(',', $host);
 
@@ -31,24 +32,14 @@ class DomainAgnostic {
         // Remove port number from host
         $host = preg_replace('/:\d+$/', '', $host);
 
-        $inputProtocol=(parse_url($siteUrl, PHP_URL_SCHEME));
-        if($inputProtocol!==null){
-            //$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https" : "http";
-            //$siteUrl = str_replace(parse_url($siteUrl, PHP_URL_SCHEME),$protocol,$siteUrl);
-            $siteUrl =parse_url($siteUrl, PHP_URL_PATH);
-            if($siteUrl="") $siteUrl="/";
-        }else{
-            $siteUrl = str_replace(explode('/',$siteUrl)[0],$host,$siteUrl);
-        }
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https" : "http";
 
-
-        return trim($siteUrl);
+        return trim($protocol . '://' . $host . parse_url($siteUrl, PHP_URL_PATH));
 
     }
 
 }
 
-//register_activation_hook(__FILE__,'portableDB_init');
 
 add_filter ( 'option_siteurl', 'DomainAgnostic::getDomain' );
 add_filter ( 'option_home', 'DomainAgnostic::getDomain' );
