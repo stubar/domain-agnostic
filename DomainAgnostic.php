@@ -36,18 +36,10 @@ class DomainAgnostic {
         return self::getDomain($url);
     }
     static function rel($url){
-        /*$output= preg_replace("/(\\/)[^\\/]*$/",'',SITECOOKIEPATH);
-        if($output=="") $output="/";
-        return $output;*/
         $newUrl=self::getDomain($url);
         $newUrl =parse_url($newUrl, PHP_URL_PATH);
         if($newUrl=="") $newUrl="/";
         return $newUrl;
-    }
-    static function test($url){
-        $x=true;
-        flush ();
-        return $url;
     }
     static function style_loader_src($url){
         $urlPath = parse_url($url, PHP_URL_PATH);
