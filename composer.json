@@ -1,0 +1,11 @@
+{
+    "name": "stubar/domainagnostic",
+    "description": "Allows quick copying of a DB to different domain in Wordpress",
+    "authors": [
+        {
+            "name": "stu",
+            "email": "stuart@caracald.com"
+        }
+    ],
+    "require": {}
+}
