@@ -1,5 +1,5 @@
 {
-    "name": "stubar/domainagnostic",
+    "name": "stubar/domain-agnostic",
     "description": "Allows quick copying of a DB to different domain in Wordpress",
     "authors": [
         {
