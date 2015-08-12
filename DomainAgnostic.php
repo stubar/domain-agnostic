@@ -69,7 +69,7 @@ add_action('wp_default_scripts', 'DomainAgnostic::wp_defaults');
 add_filter ( 'option_siteurl', 'DomainAgnostic::abs' );
 add_filter ( 'option_home', 'DomainAgnostic::abs' );
 add_filter ( 'option_ossdl_off_cdn_url', 'DomainAgnostic::abs' );
-add_filter ( 'set_url_scheme', 'DomainAgnostic::rel' );
+add_filter ( 'set_url_scheme', 'DomainAgnostic::abs' );
 /*add_filter ( 'stylesheet_uri', 'DomainAgnostic::test' );
 add_filter ( 'stylesheet_directory_uri', 'DomainAgnostic::test' );
 add_filter ( 'template_directory_uri', 'DomainAgnostic::test' );*/
