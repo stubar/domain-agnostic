@@ -10,32 +10,47 @@ License:  GPL2
 */
 
 class DomainAgnostic {
+    static $_siteUrl = null;
     static function getDomain($siteUrl) {
         //takes the domain that comes from the DB ($siteUrl) and replaces the hostname with the real host.
+        if(!self::$_siteUrl){
+            if (isset($_SERVER['HTTP_X_FORWARDED_HOST']) && $host = $_SERVER['HTTP_X_FORWARDED_HOST']) {
+                $elements = explode(',', $host);
 
-        if (isset($_SERVER['HTTP_X_FORWARDED_HOST']) && $host = $_SERVER['HTTP_X_FORWARDED_HOST']) {
-            $elements = explode(',', $host);
-
-            $host = trim(end($elements));
-        } else {
-            if (!$host = $_SERVER['HTTP_HOST']) {
-                if (!$host = $_SERVER['SERVER_NAME']) {
-                    $host = !empty($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '';
+                $host = trim(end($elements));
+            } else {
+                if (!$host = $_SERVER['HTTP_HOST']) {
+                    if (!$host = $_SERVER['SERVER_NAME']) {
+                        $host = !empty($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '';
+                    }
                 }
+            }
+
+            // Remove port number from host
+            $host = preg_replace('/:\d+$/', '', $host);
+
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https" : "http";
+            if($siteUrl){
+                return trim($protocol . '://' . $host . parse_url($siteUrl, PHP_URL_PATH));
+
+            }else{
+                if(substr(SITECOOKIEPATH, -1)=='/'){
+                    $siteRoot=rtrim(SITECOOKIEPATH, "/");
+                }else{
+                    $siteRoot=SITECOOKIEPATH;
+                }
+                self::$_siteUrl=trim($protocol . '://' . $host .$siteRoot);
             }
         }
 
-        // Remove port number from host
-        $host = preg_replace('/:\d+$/', '', $host);
+        return self::$_siteUrl;
 
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https" : "http";
-        return trim($protocol . '://' . $host . parse_url($siteUrl, PHP_URL_PATH));
 
     }
-    static function abs($url){
+    static function abs($url=false){
         return self::getDomain($url);
     }
-    static function rel($url){
+    static function rel($url=false){
         $newUrl=self::getDomain($url);
         $newUrl =parse_url($newUrl, PHP_URL_PATH);
         if($newUrl=="") $newUrl="/";
@@ -63,17 +78,37 @@ class DomainAgnostic {
         $args->content_url=parse_url($args->content_url,PHP_URL_PATH);
         return $args;
     }
+    static function checkOption($opt){
+        global $wpdb;
+        if($wpdb->get_var( "SELECT option_value FROM $wpdb->options WHERE option_name = '$opt'" )!==DomainAgnostic::abs()){
+
+            $wpdb->update(
+                $wpdb->options,
+                array(
+                    'option_value' => DomainAgnostic::abs()
+                ),
+                array( 'option_name' => $opt )
+            );
+        }
+    }
 }
 add_action('wp_default_styles', 'DomainAgnostic::wp_defaults');
 add_action('wp_default_scripts', 'DomainAgnostic::wp_defaults');
-add_filter ( 'option_siteurl', 'DomainAgnostic::abs' );
-add_filter ( 'option_home', 'DomainAgnostic::abs' );
-add_filter ( 'option_ossdl_off_cdn_url', 'DomainAgnostic::abs' );
+//add_filter ( 'option_siteurl', 'DomainAgnostic::abs' );
+//add_filter ( 'option_home', 'DomainAgnostic::rel' );
+/*add_filter ( 'option_ossdl_off_cdn_url', 'DomainAgnostic::abs' );
 add_filter ( 'set_url_scheme', 'DomainAgnostic::abs' );
-/*add_filter ( 'stylesheet_uri', 'DomainAgnostic::test' );
+add_filter ( 'stylesheet_uri', 'DomainAgnostic::test' );
 add_filter ( 'stylesheet_directory_uri', 'DomainAgnostic::test' );
 add_filter ( 'template_directory_uri', 'DomainAgnostic::test' );*/
 //add_filter ( 'theme_root_uri', 'DomainAgnostic::test' );
 //add_filter ( 'style_loader_src', 'DomainAgnostic::style_loader_src' );
 
+DomainAgnostic::checkOption('siteurl');
+DomainAgnostic::checkOption('home');
+
+
+
+//update_option( 'siteurl', DomainAgnostic::abs());
+//update_option( 'home', DomainAgnostic::abs());
 
